@@ -18,13 +18,30 @@ void PvCPU();
 void newGame(Player &, Player &);
 void outputBoard(char board[][3], Player P1, Player P2);
 void CPUgame(Player &P);
-int CPUcheck(char board[][3]);
+int CPUcheck_Easy(char board[][3]);
+int CPUcheck_Medium(char board[][3]);
 
 void CPUgame(Player &P)
 {
     bool playAgain = true;
     Player CPU;
     CPU.name = "CPU";
+
+    cout << "\n\n\n\n";
+    cout << "Plz select the difficulty Level :)\n";
+    cout << "1.Easy\n";
+    cout << "2.Medium\n";
+    int difficulty;
+    do
+    {
+        cout << "Enter your choice : ";
+        cin >> difficulty;
+        if (difficulty <= 0 || difficulty > 2)
+        {
+            cout << "Select a Correct Option\n";
+        }
+    } while (difficulty <= 0 || difficulty > 2);
+
     while (playAgain)
     {
         char board[3][3] = {};
@@ -49,7 +66,7 @@ void CPUgame(Player &P)
 
             if (evaluate(board, choice) != 'A')
             {
-                int CPUchoice = CPUcheck(board);
+                int CPUchoice = ((difficulty == 1) ? CPUcheck_Easy(board) : CPUcheck_Medium(board));
                 board[CPUchoice / 10][CPUchoice % 10] = 'B';
                 if (evaluate(board, CPUchoice) == 'B')
                 {
@@ -77,7 +94,85 @@ void CPUgame(Player &P)
     }
 }
 
-int CPUcheck(char board[][3])
+int CPUcheck_Medium(char board[][3])
+{
+    int Possible[3] = {};
+    int counter = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = i + 1; j < 3; j++)
+        {
+            if (board[i][i] == board[j][j] && board[i][i] != '\0' && board[3 - i - j][3 - i - j] == '\0')
+            {
+                if (board[i][i] == 'B')
+                {
+                    return ((3 - i - j) * 10 + (3 - i - j));
+                }
+                Possible[counter++] = ((3 - i - j) * 10 + (3 - i - j));
+            }
+            if (board[i][2 - i] == board[j][2 - j] && board[i][2 - i] != '\0' && board[3 - i - j][2 - 3 + i + j] == '\0')
+            {
+                if (board[i][2 - i] == 'B')
+                {
+                    return ((3 - i - j) * 10 + (2 - 3 + i + j));
+                }
+                Possible[counter++] = ((3 - i - j) * 10 + (2 - 3 + i + j));
+            }
+        }
+    }
+    for (int k = 0; k < 3; k++)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = i + 1; j < 3; j++)
+            {
+
+                if (board[i][k] == board[j][k] && board[i][k] != '\0' && board[3 - i - j][k] == '\0') // for checking possbile along length
+                {
+                    if (board[i][k] == 'B')
+                    {
+                        return ((3 - i - j) * 10 + k);
+                    }
+                    Possible[counter] = ((3 - i - j) * 10 + k);
+                }
+
+                if (board[k][i] == board[k][j] && board[k][i] != '\0' && board[k][3 - i - j] == '\0') // for checking possible along height
+                {
+                    if (board[k][i] == 'B')
+                    {
+                        return (k * 10 + 3 - i - j);
+                    }
+                    Possible[counter] = (k * 10 + 3 - i - j);
+                }
+            }
+        }
+    }
+    if (Possible[0] != '\0'){
+        return Possible[0];
+    }
+    if (board[1][1] == '\0')
+    {
+        return 11;
+    }
+    if (board[0][0] == '\0')
+    {
+        return 0;
+    }
+    if (board[2][2] == '\0')
+    {
+        return 22;
+    }
+    if (board[2][0] == '\0')
+    {
+        return 20;
+    }
+    if (board[0][2] == '\0')
+    {
+        return 2;
+    }
+}
+
+int CPUcheck_Easy(char board[][3])
 {
     for (int i = 0; i < 3; i++)
     {
@@ -106,7 +201,7 @@ int CPUcheck(char board[][3])
 
                 if (board[i][k] == board[j][k] && board[i][k] != '\0' && board[3 - i - j][k] == '\0') // for checking possbile along length
                 {
-                    return (k * 10 + 3 - i - j);
+                    return ((3 - i - j) * 10 + k);
                 }
             }
         }
@@ -122,6 +217,7 @@ int CPUcheck(char board[][3])
             }
         }
     }
+    return 0;
 }
 
 void outputBoard(char board[][3], Player P1, Player P2)
