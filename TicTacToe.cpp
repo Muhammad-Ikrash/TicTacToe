@@ -10,10 +10,6 @@ struct Player
     int score = 0;
 };
 
-void CPUgame(Player &P){
-    char board[3][3] = {};
-
-}
 char evaluate(char board[][3], int choice);
 void mainMenu();
 void Play();
@@ -21,6 +17,112 @@ void PvP();
 void PvCPU();
 void newGame(Player &, Player &);
 void outputBoard(char board[][3], Player P1, Player P2);
+void CPUgame(Player &P);
+int CPUcheck(char board[][3]);
+
+void CPUgame(Player &P)
+{
+    bool playAgain = true;
+    Player CPU;
+    CPU.name = "CPU";
+    while (playAgain)
+    {
+        char board[3][3] = {};
+
+        bool cont = true;
+        for (int i = 0; i < 9 && cont; i++)
+        {
+            outputBoard(board, P, CPU);
+            cout << "\n\n\n";
+            int choice;
+            do
+            {
+                cout << "Enter the box Number you want (ij): ";
+                cin >> choice;
+                if (choice % 10 < 0 || choice % 10 >= 3 || choice / 10 < 0 || choice % 10 >= 3 || board[choice / 10][choice % 10] != '\0')
+                {
+                    cout << "Enter the correct input\n";
+                }
+            } while (choice % 10 < 0 || choice % 10 >= 3 || choice / 10 < 0 || choice % 10 >= 3 || board[choice / 10][choice % 10] != '\0');
+
+            board[choice / 10][choice % 10] = 'A';
+
+            if (evaluate(board, choice) != 'A')
+            {
+                int CPUchoice = CPUcheck(board);
+                board[CPUchoice / 10][CPUchoice % 10] = 'B';
+                if (evaluate(board, CPUchoice) == 'B')
+                {
+                    cont = false;
+                    CPU.score++;
+                    cout << "CPU won the Game";
+                    cout << endl;
+                }
+            }
+            else
+            {
+                cont = false;
+                P.score++;
+                cout << P.name << " won the game";
+                cout << endl;
+            }
+        }
+        cout << "Play Again ? (y/n) : ";
+        char input;
+        cin >> input;
+        if (input != 'y')
+        {
+            playAgain = false;
+        }
+    }
+}
+
+int CPUcheck(char board[][3])
+{
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = i + 1; j < 3; j++)
+        {
+            if (board[i][i] == board[j][j] && board[i][i] != '\0' && board[3 - i - j][3 - i - j] == '\0')
+            {
+                return ((3 - i - j) * 10 + (3 - i - j));
+            }
+            if (board[i][2 - i] == board[j][2 - j] && board[i][2 - i] != '\0' && board[3 - i - j][2 - 3 + i + j] == '\0')
+            {
+                return ((3 - i - j) * 10 + (2 - 3 + i + j));
+            }
+        }
+    }
+    for (int k = 0; k < 3; k++)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = i + 1; j < 3; j++)
+            {
+                if (board[k][i] == board[k][j] && board[k][i] != '\0' && board[k][3 - i - j] == '\0') // for checking possible along height
+                {
+                    return (k * 10 + 3 - i - j);
+                }
+
+                if (board[i][k] == board[j][k] && board[i][k] != '\0' && board[3 - i - j][k] == '\0') // for checking possbile along length
+                {
+                    return (k * 10 + 3 - i - j);
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (board[i][j] == '\0')
+            {
+                return ((i * 10) + j);
+            }
+        }
+    }
+}
 
 void outputBoard(char board[][3], Player P1, Player P2)
 {
