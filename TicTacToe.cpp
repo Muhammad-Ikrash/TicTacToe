@@ -20,10 +20,10 @@ void outputBoard(char board[][3], Player P1, Player P2);
 void CPUgame(Player &P);
 int CPUcheck_Easy(char board[][3]);
 int CPUcheck_Medium(char board[][3]);
+int CPUcheck_Hard(char board[][3], int choice);
 
 void CPUgame(Player &P)
 {
-    bool playAgain = true;
     Player CPU;
     CPU.name = "CPU";
 
@@ -31,23 +31,25 @@ void CPUgame(Player &P)
     cout << "Plz select the difficulty Level :)\n";
     cout << "1.Easy\n";
     cout << "2.Medium\n";
+    cout << "3.Hard\n";
     int difficulty;
     do
     {
         cout << "Enter your choice : ";
         cin >> difficulty;
-        if (difficulty <= 0 || difficulty > 2)
+        if (difficulty <= 0 || difficulty > 3)
         {
             cout << "Select a Correct Option\n";
         }
-    } while (difficulty <= 0 || difficulty > 2);
+    } while (difficulty <= 0 || difficulty > 3);
 
+    bool playAgain = true;
     while (playAgain)
     {
         char board[3][3] = {};
 
         bool cont = true;
-        for (int i = 0; i < 9 && cont; i++)
+        for (int i = 0; i < 5 && cont; i++)
         {
             outputBoard(board, P, CPU);
             cout << "\n\n\n";
@@ -66,12 +68,13 @@ void CPUgame(Player &P)
 
             if (evaluate(board, choice) != 'A')
             {
-                int CPUchoice = ((difficulty == 1) ? CPUcheck_Easy(board) : CPUcheck_Medium(board));
+                int CPUchoice = ((difficulty == 1) ? CPUcheck_Easy(board) : ((difficulty == 2)? CPUcheck_Medium(board) : CPUcheck_Hard(board, choice)));
                 board[CPUchoice / 10][CPUchoice % 10] = 'B';
                 if (evaluate(board, CPUchoice) == 'B')
                 {
                     cont = false;
                     CPU.score++;
+                    outputBoard(board, P, CPU);
                     cout << "CPU won the Game";
                     cout << endl;
                 }
@@ -80,8 +83,13 @@ void CPUgame(Player &P)
             {
                 cont = false;
                 P.score++;
+                outputBoard(board, P, CPU);
                 cout << P.name << " won the game";
                 cout << endl;
+            }
+            if (i == 4){
+                outputBoard(board, P, CPU);
+                cout << "Draw";
             }
         }
         cout << "Play Again ? (y/n) : ";
@@ -92,6 +100,115 @@ void CPUgame(Player &P)
             playAgain = false;
         }
     }
+}
+
+int CPUcheck_Hard(char board[][3], int choice){
+    int Possible[3] = {};
+    int counter = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = i + 1; j < 3; j++)
+        {
+            if (board[i][i] == board[j][j] && board[i][i] != '\0' && board[3 - i - j][3 - i - j] == '\0')
+            {
+                if (board[i][i] == 'B')
+                {
+                    return ((3 - i - j) * 10 + (3 - i - j));
+                }
+                Possible[counter++] = ((3 - i - j) * 10 + (3 - i - j));
+            }
+            if (board[i][2 - i] == board[j][2 - j] && board[i][2 - i] != '\0' && board[3 - i - j][2 - 3 + i + j] == '\0')
+            {
+                if (board[i][2 - i] == 'B')
+                {
+                    return ((3 - i - j) * 10 + (2 - 3 + i + j));
+                }
+                Possible[counter++] = ((3 - i - j) * 10 + (2 - 3 + i + j));
+            }
+        }
+    }
+    for (int k = 0; k < 3; k++)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = i + 1; j < 3; j++)
+            {
+
+                if (board[i][k] == board[j][k] && board[i][k] != '\0' && board[3 - i - j][k] == '\0') // for checking possbile along length
+                {
+                    if (board[i][k] == 'B')
+                    {
+                        return ((3 - i - j) * 10 + k);
+                    }
+                    Possible[counter] = ((3 - i - j) * 10 + k);
+                }
+
+                if (board[k][i] == board[k][j] && board[k][i] != '\0' && board[k][3 - i - j] == '\0') // for checking possible along height
+                {
+                    if (board[k][i] == 'B')
+                    {
+                        return (k * 10 + 3 - i - j);
+                    }
+                    Possible[counter] = (k * 10 + 3 - i - j);
+                }
+            }
+        }
+    }
+
+    static int CPUfirst;
+    static int PlayerFirst = -1;
+    int empty;
+    if (PlayerFirst == -1){
+        PlayerFirst = choice;
+    }
+
+    if (Possible[0] == '\0'){
+        int turns = 0;
+        for (int i = 0; i < 9; i++){
+            if (board[i /3][i % 3] != '\0'){
+                turns++;
+            }
+            empty = (i / 3) * 10 + i % 3;
+        }
+
+        if (turns == 1){
+            if (choice == 11){
+                CPUfirst = 00;
+                return 00;
+            }
+            if ((choice / 10 !=  1) && (choice % 10 != 1)) {
+                CPUfirst = 11;
+                return 11;
+                //return ((2 - (choice / 10)) * 10 + (2 - choice % 10));
+            }
+            CPUfirst = 11;
+            return 11;
+        }
+        if (turns == 3){
+            if (PlayerFirst == 11){
+                return 02;
+            }
+            if (CPUfirst / 10 != 1 && CPUfirst % 10 != 1) {
+                if (board[1][1] != '\0'){
+                    return (CPUfirst - (CPUfirst % 10) + (3 - CPUfirst % 10));
+                }
+                return 11;
+            }
+            if (board[(PlayerFirst + 9) / 10][(PlayerFirst + 9) % 10] == 'A' || board[(PlayerFirst - 9) / 10][(PlayerFirst - 9) % 10] == 'A'){
+                int ret;
+                ((board[2][1] == 'A')? (ret = 0): (ret = 22));
+                return ret;
+            }
+            if (((((PlayerFirst + 11) / 10) < 3) && (((PlayerFirst + 11) % 10) < 3) && board[(PlayerFirst + 11) / 10][(PlayerFirst + 11) % 10] == 'A' )||( (((PlayerFirst + 11) / 10) >= 0) && (((PlayerFirst + 11) % 10) >= 0) && board[(PlayerFirst - 11) / 10][(PlayerFirst - 11) % 10] == 'A')){
+                int ret;
+                ((board[2][1] == 'A')? (ret = 2): (ret = 20));
+                return ret;
+            }
+        }
+        return empty;
+    }
+    return Possible[0];
+    
 }
 
 int CPUcheck_Medium(char board[][3])
@@ -222,7 +339,7 @@ int CPUcheck_Easy(char board[][3])
 
 void outputBoard(char board[][3], Player P1, Player P2)
 {
-    system("clear");
+    //system("clear");
     cout << P1.name << "'s Score : " << P1.score << "\t\t\t" << P2.name << "'s Score : " << P2.score << endl;
     cout << "\t    0\t    1\t    2\n";
     int j, k;
@@ -250,7 +367,7 @@ void outputBoard(char board[][3], Player P1, Player P2)
 
 void mainMenu()
 {
-    system("clear");
+    //system("clear");
     cout << "Welcome to TicTacToe\n\n\n\n\n";
     cout << "1.Play\n";
     cout << "2.Exit\n\n\n\n\n";
@@ -271,7 +388,7 @@ void mainMenu()
 
 void Play()
 {
-    system("clear");
+    //system("clear");
     cout << "Welcome to Play Game\n\n\n\n\n\n";
     cout << "1.PvP\n";
     cout << "2.PvCPU\n\n\n\n";
@@ -299,7 +416,7 @@ void Play()
 
 void PvP()
 {
-    system("clear");
+    //system("clear");
     cout << "Welcome to Player vs Player mode\n";
     cout << "Enter the name of the Player 1 : ";
     Player P1, P2;
@@ -312,7 +429,7 @@ void PvP()
 
 void PvCPU()
 {
-    system("clear");
+    //system("clear");
     cout << "Welcome to Player vs CPU mode \n";
     Player P;
     cout << "Enter the name of the Player : ";
